@@ -18,7 +18,17 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useToast } from "@/components/ui/use-toast"
-import { supabase, type Order, type OrderItem, type Payment } from "@/lib/supabase"
+import { supabase, type Order, type OrderItem } from "@/lib/supabase"
+import type { Payment as BasePayment } from "@/lib/supabase"
+
+// Extend the Payment type to include the orders relationship
+type Payment = BasePayment & {
+  orders?: Order & {
+    tables?: {
+      number: number;
+    };
+  };
+}
 import { CreditCard, Download, Printer, Receipt, Wallet } from "lucide-react"
 import { useState, useEffect } from "react"
 
@@ -141,9 +151,10 @@ export default function BillingDashboard() {
     setPaymentMethod("cash")
   }
 
-  // Calculate total with discount
+  // Calculate total with discount (percentage)
   const calculateTotal = (subtotal: number, tax: number) => {
-    return subtotal + tax - discount
+    const discountAmount = ((subtotal + tax) * discount) / 100
+    return subtotal + tax - discountAmount
   }
 
   // Process payment
@@ -152,6 +163,7 @@ export default function BillingDashboard() {
 
     try {
       const finalTotal = calculateTotal(selectedOrder.subtotal, selectedOrder.tax)
+      const discountAmount = ((selectedOrder.subtotal + selectedOrder.tax) * discount) / 100
 
       // Create payment record
       const { data: paymentData, error: paymentError } = await supabase
@@ -167,12 +179,12 @@ export default function BillingDashboard() {
 
       if (paymentError) throw paymentError
 
-      // Update order status to paid and apply discount
+      // Update order status to paid and apply discount (percentage)
       const { error: orderError } = await supabase
         .from("orders")
         .update({
           status: "paid",
-          discount: discount,
+          discount: discount, // store as percentage
           total: finalTotal,
         })
         .eq("id", selectedOrder.id)
@@ -277,7 +289,7 @@ export default function BillingDashboard() {
                             </Badge>
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">Order #{order.id}</div>
-                          <div className="text-sm font-medium mt-1">${order.total.toFixed(2)}</div>
+                          <div className="text-sm font-medium mt-1">₹{order.total.toFixed(2)}</div>
                         </div>
                       ))}
 
@@ -320,8 +332,8 @@ export default function BillingDashboard() {
                                 <tr key={item.id} className="border-b last:border-0">
                                   <td className="p-2">{item.menu_items?.name}</td>
                                   <td className="text-center p-2">{item.quantity}</td>
-                                  <td className="text-right p-2">${item.price.toFixed(2)}</td>
-                                  <td className="text-right p-2">${(item.price * item.quantity).toFixed(2)}</td>
+                                  <td className="text-right p-2">₹{item.price.toFixed(2)}</td>
+                                  <td className="text-right p-2">₹{(item.price * item.quantity).toFixed(2)}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -331,11 +343,11 @@ export default function BillingDashboard() {
                         <div className="space-y-2">
                           <div className="flex justify-between">
                             <span>Subtotal</span>
-                            <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                            <span>₹{selectedOrder.subtotal.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Tax</span>
-                            <span>${selectedOrder.tax.toFixed(2)}</span>
+                            <span>₹{selectedOrder.tax.toFixed(2)}</span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span>Discount</span>
@@ -346,14 +358,14 @@ export default function BillingDashboard() {
                                 onChange={(e) => setDiscount(Number(e.target.value))}
                                 className="w-20 h-8"
                                 min="0"
-                                max={selectedOrder.subtotal}
+                                max="100"
                               />
-                              <span>$</span>
+                              <span>%</span>
                             </div>
                           </div>
                           <div className="flex justify-between font-bold text-lg pt-2 border-t">
                             <span>Total</span>
-                            <span>${calculateTotal(selectedOrder.subtotal, selectedOrder.tax).toFixed(2)}</span>
+                            <span>₹{calculateTotal(selectedOrder.subtotal, selectedOrder.tax).toFixed(2)}</span>
                           </div>
                         </div>
 
@@ -429,7 +441,7 @@ export default function BillingDashboard() {
                           <div className="py-4">
                             <div className="flex justify-between font-medium">
                               <span>Total Amount:</span>
-                              <span>${calculateTotal(selectedOrder.subtotal, selectedOrder.tax).toFixed(2)}</span>
+                              <span>₹{calculateTotal(selectedOrder.subtotal, selectedOrder.tax).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between text-sm text-muted-foreground">
                               <span>Payment Method:</span>
@@ -486,7 +498,7 @@ export default function BillingDashboard() {
                           <td className="p-3">PAY-{payment.id}</td>
                           <td className="p-3">Table {payment.orders?.tables?.number}</td>
                           <td className="p-3">{new Date(payment.created_at).toLocaleString()}</td>
-                          <td className="p-3">${payment.amount.toFixed(2)}</td>
+                          <td className="p-3">₹{payment.amount.toFixed(2)}</td>
                           <td className="p-3 capitalize">{payment.payment_method}</td>
                           <td className="p-3 text-right">
                             <Button variant="ghost" size="icon" className="h-8 w-8">

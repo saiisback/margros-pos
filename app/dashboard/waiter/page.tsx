@@ -467,7 +467,7 @@ export default function WaiterDashboard() {
                                       <span className="text-xs text-muted-foreground ml-2">({item.notes})</span>
                                     )}
                                   </span>
-                                  <span>${(item.price * item.quantity).toFixed(2)}</span>
+                                  <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                                 </li>
                               ))}
                             </ul>
@@ -478,7 +478,7 @@ export default function WaiterDashboard() {
                             )}
                             <div className="mt-3 pt-3 border-t flex justify-between font-medium">
                               <span>Total</span>
-                              <span>${order.total.toFixed(2)}</span>
+                              <span>₹{order.total.toFixed(2)}</span>
                             </div>
                           </CardContent>
                           <CardFooter className="flex gap-2">
@@ -543,7 +543,7 @@ export default function WaiterDashboard() {
                               onClick={() => addItemToOrder(item)}
                             >
                               <span>{item.name}</span>
-                              <span>${item.price.toFixed(2)}</span>
+                              <span>₹{item.price.toFixed(2)}</span>
                             </Button>
                           ))}
                       </div>
@@ -565,7 +565,7 @@ export default function WaiterDashboard() {
                             <div className="flex-1">
                               <div className="flex justify-between">
                                 <span className="font-medium">{menuItem?.name}</span>
-                                <span>${(item.price * item.quantity).toFixed(2)}</span>
+                                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
                               </div>
                               <div className="flex items-center mt-1">
                                 <Button
@@ -641,7 +641,7 @@ export default function WaiterDashboard() {
                       <div className="mt-4 pt-4 border-t flex justify-between font-medium">
                         <span>Total</span>
                         <span>
-                          ${newOrder.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}
+                          ₹{newOrder.reduce((total, item) => total + item.price * item.quantity, 0).toFixed(2)}
                         </span>
                       </div>
                     </div>

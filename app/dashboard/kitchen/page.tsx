@@ -164,12 +164,7 @@ export default function KitchenDashboard() {
   }
 
   // Print order
-  const printOrder = (orderId: number) => {
-    toast({
-      title: "Printing Order",
-      description: `Order #${orderId} has been sent to the printer`,
-    })
-  }
+
 
   // Get status badge color
   const getStatusColor = (status: string) => {
@@ -309,9 +304,7 @@ export default function KitchenDashboard() {
                           )}
                         </CardContent>
                         <CardFooter className="flex gap-2 pt-2">
-                          <Button variant="outline" size="sm" className="flex-1" onClick={() => printOrder(order.id)}>
-                            <Printer className="mr-1 h-4 w-4" /> Print
-                          </Button>
+                          
                           <Button
                             variant="default"
                             size="sm"
